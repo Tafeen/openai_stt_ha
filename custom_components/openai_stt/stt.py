@@ -27,12 +27,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 CONF_API_KEY = "api_key"
-CONF_API_BASE = "api_base"
+CONF_BASE_URL = "base_url"
 CONF_MODEL = "model"
 CONF_PROMPT = "prompt"
 CONF_TEMP = "temperature"
 
-DEFAULT_API_BASE = "https://api.openai.com/v1"
+DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "whisper-1"
 DEFAULT_PROMPT = ""
 DEFAULT_TEMP = 0
@@ -106,7 +106,7 @@ MODEL_SCHEMA = vol.In(SUPPORTED_MODELS)
 PLATFORM_SCHEMA = cv.PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_API_KEY): cv.string,
-        vol.Optional(CONF_API_BASE, default=DEFAULT_API_BASE): cv.string,
+        vol.Optional(CONF_BASE_URL, default=DEFAULT_BASE_URL): cv.string,
         vol.Optional(CONF_MODEL, default=DEFAULT_MODEL): cv.string,
         vol.Optional(CONF_PROMPT, default=DEFAULT_PROMPT): cv.string,
         vol.Optional(CONF_TEMP, default=CONF_TEMP): cv.positive_int,
@@ -117,24 +117,24 @@ PLATFORM_SCHEMA = cv.PLATFORM_SCHEMA.extend(
 async def async_get_engine(hass, config, discovery_info=None):
     """Set up the OpenAI STT component."""
     api_key = config[CONF_API_KEY]
-    api_base = config[CONF_API_BASE]
+    base_url = config[CONF_BASE_URL]
     model = config.get(CONF_MODEL, DEFAULT_MODEL)
     prompt = config.get(CONF_PROMPT, DEFAULT_PROMPT)
     temperature = config.get(CONF_TEMP, DEFAULT_TEMP)
-    return OpenAISTTProvider(hass, api_key, api_base, model, prompt, temperature)
+    return OpenAISTTProvider(hass, api_key, base_url, model, prompt, temperature)
 
 
 class OpenAISTTProvider(Provider):
     """The OpenAI STT provider."""
 
-    def __init__(self, hass, api_key, api_base, model, prompt, temperature) -> None:
+    def __init__(self, hass, api_key, base_url, model, prompt, temperature) -> None:
         """Init OpenAI STT service."""
         self.hass = hass
         self.name = "OpenAI STT"
 
         self._model = model
         self._api_key = api_key
-        self._api_base = api_base
+        self._base_url = base_url
         self._prompt = prompt
         self._temperature = temperature
 
@@ -178,7 +178,7 @@ class OpenAISTTProvider(Provider):
             audio_data += chunk
 
         # OpenAI client with API Key
-        client = OpenAI(api_base=self._api_base, api_key=self._api_key)
+        client = OpenAI(base_url=self._base_url, api_key=self._api_key)
 
         # convert audio data to the correct format
         wav_stream = io.BytesIO()
