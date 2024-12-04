@@ -30,6 +30,7 @@ Then add the following to your `configuration.yaml`:
 ```yaml
 stt:
   - platform: openai_stt
+    api_base: YOUR_API_BASE
     api_key: YOUR_API_KEY
     #  Optional parameters
     model: whisper-1
@@ -40,6 +41,7 @@ stt:
 Parameters:
 
 - `api_key` (Required): Your OpenAI API key.
+- `api_base` (Optional): Your OpenAI custom API URL. The default is `https://api.openai.com/v1`.
 - `model` (Optional): The model to use. The default is `whisper-1`. Currently, the only available model is `whisper-1`. The available models are listed [here](https://platform.openai.com/docs/models/whisper).
 - `prompt` (Optional): The prompt to use. The default is an empty string. See the [OpenAI documentation](https://platform.openai.com/docs/guides/speech-to-text/prompting) for more information.
 - `temperature` (Optional): The temperature to use between 0 and 1. The default is 0. A higher temperature will make the model more creative, but less accurate.
