@@ -26,6 +26,7 @@ import homeassistant.helpers.config_validation as cv
 _LOGGER = logging.getLogger(__name__)
 
 
+CONF_API_BASE = "api_base"
 CONF_API_KEY = "api_key"
 CONF_MODEL = "model"
 CONF_PROMPT = "prompt"
@@ -101,21 +102,26 @@ SUPPORTED_LANGUAGES = [
 
 MODEL_SCHEMA = vol.In(SUPPORTED_MODELS)
 
-PLATFORM_SCHEMA = cv.PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_API_KEY): cv.string,
-    vol.Optional(CONF_MODEL, default=DEFAULT_MODEL): cv.string,
-    vol.Optional(CONF_PROMPT, default=DEFAULT_PROMPT): cv.string,
-    vol.Optional(CONF_TEMP, default=CONF_TEMP): cv.positive_int,
-})
+PLATFORM_SCHEMA = cv.PLATFORM_SCHEMA.extend(
+    {
+        vol.Required(CONF_API_BASE): cv.string,
+        vol.Required(CONF_API_KEY): cv.string,
+        vol.Optional(CONF_MODEL, default=DEFAULT_MODEL): cv.string,
+        vol.Optional(CONF_PROMPT, default=DEFAULT_PROMPT): cv.string,
+        vol.Optional(CONF_TEMP, default=CONF_TEMP): cv.positive_int,
+    }
+)
 
 
 async def async_get_engine(hass, config, discovery_info=None):
     """Set up the OpenAI STT component."""
+    api_base = config[CONF_API_BASE]
     api_key = config[CONF_API_KEY]
     model = config.get(CONF_MODEL, DEFAULT_MODEL)
     prompt = config.get(CONF_PROMPT, DEFAULT_PROMPT)
     temperature = config.get(CONF_TEMP, DEFAULT_TEMP)
     return OpenAISTTProvider(hass, api_key, model, prompt, temperature)
+
 
 class OpenAISTTProvider(Provider):
     """The OpenAI STT provider."""
@@ -129,7 +135,6 @@ class OpenAISTTProvider(Provider):
         self._api_key = api_key
         self._prompt = prompt
         self._temperature = temperature
-        
 
     @property
     def supported_languages(self) -> list[str]:
@@ -171,17 +176,17 @@ class OpenAISTTProvider(Provider):
             audio_data += chunk
 
         # OpenAI client with API Key
-        client = OpenAI(api_key=self._api_key)
+        client = OpenAI(api_base=self._api_base, api_key=self._api_key)
 
         # convert audio data to the correct format
         wav_stream = io.BytesIO()
 
-        with wave.open(wav_stream, 'wb') as wf:
+        with wave.open(wav_stream, "wb") as wf:
             wf.setnchannels(metadata.channel)
             wf.setsampwidth(metadata.bit_rate // 8)
             wf.setframerate(metadata.sample_rate)
             wf.writeframes(audio_data)
-        
+
         file = ("wisper_audio.wav", wav_stream, "audio/wav")
 
         def job():
